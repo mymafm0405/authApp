@@ -3,32 +3,45 @@ import { Card, Form, Button, Alert } from "react-bootstrap";
 import { Link, useHistory } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
-export default function Signup() {
+export default function Update() {
   const emailRef = useRef();
   const passwordRef = useRef();
   const passwordConfirmRef = useRef();
-  const { currentUser } = useAuth();
+  const { currentUser, updateEmail, updatePassword } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const history = useHistory();
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
 
     if (passwordRef.current.value !== passwordConfirmRef.current.value) {
       return setError("Passwords are not match!");
     }
 
-    // try {
-    //   setLoading(true);
-    //   setError("");
-    //   await signUp(emailRef.current.value, passwordRef.current.value);
-    //   history.push("/");
-    // } catch {
-    //   setError("Failed to create an account");
-    // }
+    const promises = [];
 
-    setLoading(false);
+    if (currentUser.email !== emailRef.current.value) {
+      promises.push(updateEmail(emailRef.current.value));
+    }
+
+    if (passwordRef.current.value !== "") {
+      promises.push(updatePassword(emailRef.current.value));
+    }
+
+    setError("");
+    setLoading(true);
+
+    Promise.all(promises)
+      .then(() => {
+        history.push("/");
+      })
+      .catch(() => {
+        setError("Can no update your account!");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
   return (
     <>
